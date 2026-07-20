@@ -1,8 +1,10 @@
-disk=/dev/nvme0n1
+# Wipe existing partitions
+wipefs --all /dev/nvme0n1
+sgdisk --zap-all /dev/nvme0n1
 
-wipefs --all "$disk"
-sgdisk --zap-all "$disk"
-
+# Create new partitions:
+# 1. 1GB EFI
+# 2. Remaining space for Linux root partition
 sgdisk \
   --clear \
   --new=1:0:+1G \
@@ -11,32 +13,40 @@ sgdisk \
   --new=2:0:0 \
   --typecode=2:8300 \
   --change-name=2:"Linux root" \
-  "$disk"
+  /dev/nvme0n1
 
-partprobe "$disk"
-sgdisk --print "$disk"
+# Reread partition table
+partprobe /dev/nvme0n1
+# Print summary of the partition table
+sgdisk --print /dev/nvme0n1
 
-mkfs.fat -F32 "$disk"p1
-mkfs.ext4 "$disk"p2
+# Format partitions
+mkfs.fat -F32 /dev/nvme0n1p1
+mkfs.ext4 /dev/nvme0n1p2
 
-mount "$disk"p2 /mnt
-mount --mkdir "$disk"p1 /mnt/boot
+# Mount partitions
+mount /dev/nvme0n1p2 /mnt
+mount --mkdir /dev/nvme0n1p1 /mnt/boot
 
-pacstrap -K /mnt base linux linux-firmware intel-ucode \
+# Install essential packages
+pacstrap -K /mnt \
+    base linux linux-firmware intel-ucode \
     networkmanager \
     vim sudo \
     grub efibootmgr dosfstools
 
+# Generate fstab
 genfstab -U /mnt > /mnt/etc/fstab
 
+# Install chroot into environment
 install -Dm700 \
   "chroot.sh" \
   /mnt/root/chroot.sh
 
-# Execute it inside the installed system.
+# Execute chroot
 arch-chroot -S /mnt /root/chroot.sh
 
-# Do not leave the installer script in the installed system.
+# Remove chroot
 rm /mnt/root/chroot.sh
 
 umount -R /mnt
