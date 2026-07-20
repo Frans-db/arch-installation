@@ -22,10 +22,23 @@ mkfs.ext4 "$disk"p2
 mount "$disk"p2 /mnt
 mount --mkdir "$disk"p1 /mnt/boot
 
-pacstrap -K /mnt base linux linux-firmware \
-    intel-ucode \
+pacstrap -K /mnt base linux linux-firmware intel-ucode \
     networkmanager \
     vim sudo \
     grub efibootmgr dosfstools
 
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U /mnt > /mnt/etc/fstab
+
+install -Dm700 \
+  "chroot.sh" \
+  /mnt/root/chroot.sh
+
+# Execute it inside the installed system.
+arch-chroot -S /mnt /root/chroot.sh
+
+# Do not leave the installer script in the installed system.
+rm /mnt/root/chroot.sh
+
+umount -R /mnt
+
+echo "Installation complete."
