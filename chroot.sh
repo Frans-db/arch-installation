@@ -12,19 +12,6 @@ echo "precision5560" > /etc/hostname
 # Networking
 systemctl enable NetworkManager
 
-mkdir -p /etc/mkinitcpio.conf.d
-
-cat > /etc/mkinitcpio.conf.d/encryption.conf <<'EOF'
-HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)
-EOF
-mkinitcpio -P
-
-luks_uuid="$(cryptsetup luksUUID "$encrypted_partition")"
-
-sed -i \
-  "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"rd.luks.name=${luks_uuid}=root root=/dev/mapper/root\"|" \
-  /etc/default/grub
-
 # Install GRUB for UEFI.
 grub-install \
   --target=x86_64-efi \
