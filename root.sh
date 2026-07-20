@@ -1,17 +1,26 @@
-wipefs --all /dev/nvme0n1
-sgdisk --zap-all /dev/nvme0n1
-fdisk /dev/nvme0n1 # manual
-# g                 new empty GPT label (replaces the existing table in memory)
-# n  1  ⏎  +1G     partition 1: default start (2048), 1 GiB
-# n  2  ⏎  ⏎       partition 2: default start, rest of disk
-# t  1  uefi       set p1 type to EFI System  (if 'uefi' isn't accepted, type 1)
-# w                write and exit
+disk=/dev/nvme0n1
 
-mkfs.fat -F32 /dev/nvme0n1p1
-mkfs.ext4 /dev/nvme0n1p2
+wipefs --all "$disk"
+sgdisk --zap-all "$disk"
 
-mount /dev/nvme0n1p2 /mnt
-mount --mkdir /dev/nvme0n1p1 /mnt/boot
+sgdisk \
+  --clear \
+  --new=1:0:+1G \
+  --typecode=1:ef00 \
+  --change-name=1:"EFI System Partition" \
+  --new=2:0:0 \
+  --typecode=2:8300 \
+  --change-name=2:"Linux root" \
+  "$disk"
+
+partprobe "$disk"
+sgdisk --print "$disk"
+
+mkfs.fat -F32 "$disk"p1
+mkfs.ext4 "$disk"p2
+
+mount "$disk"p2 /mnt
+mount --mkdir "$disk"p1 /mnt/boot
 
 pacstrap -K /mnt base linux linux-firmware \
     intel-ucode \
