@@ -20,12 +20,16 @@ partprobe /dev/nvme0n1
 # Print summary of the partition table
 sgdisk --print /dev/nvme0n1
 
+# Encrypt root partition
+cryptsetup -v luksFormat /dev/nvme0n1p2
+cryptsetup open /dev/nvme0n1p2 root
+
 # Format partitions
 mkfs.fat -F32 /dev/nvme0n1p1
-mkfs.ext4 /dev/nvme0n1p2
+mkfs.ext4 /dev/mapper/root
 
 # Mount partitions
-mount /dev/nvme0n1p2 /mnt
+mount /dev/mapper/root /mnt 
 mount --mkdir /dev/nvme0n1p1 /mnt/boot
 
 # Install essential packages
@@ -33,7 +37,8 @@ pacstrap -K /mnt \
     base linux linux-firmware intel-ucode \
     networkmanager \
     vim sudo \
-    grub efibootmgr dosfstools
+    grub efibootmgr dosfstools \
+    cryptsetup
 
 # Generate fstab
 genfstab -U /mnt > /mnt/etc/fstab
