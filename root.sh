@@ -17,8 +17,6 @@ sgdisk \
 
 # Reread partition table
 partprobe /dev/nvme0n1
-# Print summary of the partition table
-sgdisk --print /dev/nvme0n1
 
 # Format partitions
 mkfs.fat -F32 /dev/nvme0n1p1
@@ -28,12 +26,15 @@ mkfs.ext4 /dev/nvme0n1p2
 mount /dev/nvme0n1p2 /mnt
 mount --mkdir /dev/nvme0n1p1 /mnt/boot
 
-# Install essential packages
-pacstrap -K /mnt \
-    base linux linux-firmware intel-ucode \
-    networkmanager \
-    vim sudo \
-    grub efibootmgr dosfstools
+# Install packages
+# Essential packages
+pacstrap -K /mnt base linux linux-firmware intel-ucode
+# Bootloader
+pacstrap -K /mnt grub efibootmgr
+# Network
+pacstrap -K /mnt networkmanager
+# Tools
+pacstrap -K /mnt vim sudo
 
 # Generate fstab
 genfstab -U /mnt > /mnt/etc/fstab
