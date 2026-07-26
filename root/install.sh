@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 # Wipe existing partitions
 wipefs --all /dev/nvme0n1
 sgdisk --zap-all /dev/nvme0n1
@@ -38,18 +41,3 @@ pacstrap -K /mnt vim sudo
 
 # Generate fstab
 genfstab -U /mnt > /mnt/etc/fstab
-
-# Install chroot into environment
-install -Dm700 \
-  "chroot.sh" \
-  /mnt/root/chroot.sh
-
-# Execute chroot
-arch-chroot -S /mnt /root/chroot.sh
-
-# Remove chroot
-rm /mnt/root/chroot.sh
-
-umount -R /mnt
-
-echo "Installation complete."
