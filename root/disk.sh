@@ -28,16 +28,3 @@ mkfs.ext4 /dev/nvme0n1p2
 # Mount partitions
 mount /dev/nvme0n1p2 /mnt
 mount --mkdir /dev/nvme0n1p1 /mnt/boot
-
-# Install packages
-# Essential packages
-pacstrap -K /mnt base linux linux-firmware intel-ucode
-# Bootloader
-pacstrap -K /mnt grub efibootmgr
-# Network
-pacstrap -K /mnt networkmanager
-# Tools
-pacstrap -K /mnt vim sudo
-
-# Generate fstab
-genfstab -U /mnt > /mnt/etc/fstab
