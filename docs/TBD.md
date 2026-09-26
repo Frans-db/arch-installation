@@ -15,3 +15,14 @@ scan on
 pair MAC_address
 trust MAC-address
 ```
+
+# Random stuff
+
+**For formatting SD card**
+```bash
+sudo pacman -S dosfstools
+```
+
+```bash
+sudo pacman -S yt-dlp
+```
